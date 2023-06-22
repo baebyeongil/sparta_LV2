@@ -5,13 +5,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    minLength: 3,
   },
   password: { // password 필드
     type: String,
     required: true,
-    minLength: 4,
   },
+}, {
+  versionKey: false,
 });
 
 // 가상의 userId 값을 할당

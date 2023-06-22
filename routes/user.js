@@ -1,38 +1,47 @@
 const express = require("express")
-const jwt = require("jsonwebtoken");
 const router = express.Router()
 const User = require("../schemas/user.js")
+
+// 정규식
+const nicknamecheck = /^(?=.*[\da-zA-Z])[0-9a-zA-Z]{3,}$/;
 
 // 회원가입 API
 router.post("/users", async (req, res) => {
     const { nickname, password, confirmPassword } = req.body;
+    const nicknames = await User.findOne({ nickname: nickname })
 
-    if (password !== confirmPassword) {
-        res.status(400).json({
+    if (nicknames) {
+        return res.status(400).json({
+            success: false,
+            errorMessage: "중복된 닉네임이 존재합니다."
+        })
+    }
+    else if (!nicknamecheck.test(nickname)) {
+        return res.status(400).json({
+            success: false,
+            message: "닉네임은 최소 3자 이상, 알파벳 대소문자(a~z, A~Z), 숫자(0~9)로 구성해 주세요."
+        });
+    }
+    else if (password.length < 4 || password.includes(nickname)) {
+        return res.status(400).json({
+            success: false,
+            errorMessage: "비밀번호는 최소 4자 이상, 닉네임과 같은 값이 포함될 수 없습니다."
+        })
+    }
+    else if (password !== confirmPassword) {
+        return res.status(400).json({
+            success: false,
             errorMessage: "패스워드가 패스워드 확인란과 다릅니다.",
-        });
-        return;
+        })
     }
-
-    // email 또는 nickname이 동일한 데이터가 있는지 확인하기 위해 가져온다.
-    const existsUsers = await User.findOne({
-        $or: [{ nickname }],
-    });
-    if (existsUsers) {
-        // NOTE: 보안을 위해 인증 메세지는 자세히 설명하지 않습니다.
-        res.status(400).json({
-            errorMessage: "중복된 닉네임입니다.",
-        });
-        return;
-    }
-
-    const user = new User({ nickname, password });
-    await user.save();
-
+    await User.create({
+        nickname: nickname,
+        password: password
+    })
     res.status(201).json({
         success: true,
-            message: "가입되었습니다."
-        })
+        message: "계정이 생성되었습니다."
+    })
 });
 
 module.exports = router;

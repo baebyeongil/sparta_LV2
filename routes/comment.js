@@ -70,7 +70,7 @@ router.post("/posts/:postId/comments", authMiddleware, async (req, res) => {
 // 댓글 수정
 router.put("/posts/:postId/comments/:commentId", authMiddleware, async (req, res) => {
     const postId  = req.params.postId
-    const commentId = req.params.commentId
+    const commentId = req.params.commnetId
     const { userId } = res.locals.user
     const { comment } = req.body
 
